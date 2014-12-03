@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel='stylesheet' href='/components/bootstrap/dist/css/bootstrap.css' />
+
+        <script src='/components/zepto/zepto.js'></script>
+        <script src="/socket.io/socket.io.js"></script>
+
+        <script>
+            $(function() {
+                var socket = io.connect('http://localhost:3000');
+                socket.on('news', function (data) {
+                    console.log(data);
+                    //socket.emit('my other event', { my: 'data' });
+                });
+                
+                socket.on('card-tapped', function (data) {
+                    console.log(data);
+                    //socket.emit('my other event', { my: 'data' });
+                });
+
+                $('#test-button').on('click', function(event) {
+                    socket.emit('button', { page: 'table' });
+                });
+
+            })
+        </script>
+    </head>
+    <body>
+        <div id="page-wrap">
+            <div class="container-fluid">
+                <button id="test-button" type="button" class="btn btn-default">Default</button>
+            </div>
+        </div>
+    </body>
+</html>
