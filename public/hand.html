@@ -42,10 +42,21 @@
                         socket.emit('card-tapped', { id: card.id });
                     });
                     hammer.on('panup', function(ev) {
-                        card.top += ev.deltaY;
+                        var transform = 'translateY(' + ev.deltaY + 'px)';
+                        card.style.transform = transform;
+                        card.style.oTransform = transform;
+                        card.style.msTransform = transform;
+                        card.style.mozTransform = transform;
+                        card.style.webkitTransform = transform;
                         console.log('up ' + card.id);
                     });
                     hammer.on('pandown', function(ev) {
+                        var transform = 'translateY(-' + ev.deltaY + 'px)';
+                        card.style.transform = transform;
+                        card.style.oTransform = transform;
+                        card.style.msTransform = transform;
+                        card.style.mozTransform = transform;
+                        card.style.webkitTransform = transform;
                         console.log('down ' + card.id);
                     });
                     /*hammer.on('panleft', function(ev) {
