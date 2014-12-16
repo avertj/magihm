@@ -23,6 +23,14 @@ io.on('connection', function (socket) {
   socket.on('card-tapped', function (data) {
     io.emit('card-tapped', data);
   });
+	
+  socket.on('card-played', function (data) {
+    io.emit('card-played', data);
+  });
+	
+  socket.on('card-discared', function (data) {
+    io.emit('card-discared', data);
+  });
 
 
   //socket.emit('news', { from: 'top' });

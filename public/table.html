@@ -8,7 +8,7 @@
 
         <script>
             $(function() {
-                var socket = io.connect('http://localhost:3000');
+                var socket = io.connect('http://192.168.137.91:3000');
                 socket.on('news', function (data) {
                     console.log(data);
                     //socket.emit('my other event', { my: 'data' });
@@ -17,6 +17,14 @@
                 socket.on('card-tapped', function (data) {
                     console.log(data);
                     //socket.emit('my other event', { my: 'data' });
+                });
+				
+				socket.on('card-played', function (data) {
+                    console.log('card-played :', data);
+                });
+				
+				socket.on('card-discared', function (data) {
+                    console.log('card-discared :', data);
                 });
 
                 $('#test-button').on('click', function(event) {
@@ -29,7 +37,7 @@
     <body>
         <div id="page-wrap">
             <div class="container-fluid">
-                <button id="test-button" type="button" class="btn btn-default">Default</button>
+                <!--<button id="test-button" type="button" class="btn btn-default">Default</button>-->
             </div>
         </div>
     </body>
