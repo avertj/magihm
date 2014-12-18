@@ -31,6 +31,18 @@ io.on('connection', function (socket) {
   socket.on('card-discared', function (data) {
     io.emit('card-discared', data);
   });
+  
+  socket.on('card-remove', function (data) {
+    io.emit('card-remove', data);
+  });
+  
+  socket.on('card-drawed', function (data) {
+    io.emit('card-drawed', data);
+  });
+  
+  socket.on('draw', function (data) {
+    io.emit('draw', data);
+  });
 
 
   //socket.emit('news', { from: 'top' });

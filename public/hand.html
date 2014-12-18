@@ -17,15 +17,28 @@
 
         <script>
             $(function() {
-                var socket = io.connect('http://192.168.137.91:3000');
+				<!--var socket = io.connect('localhost:3000');-->
+                <!--var socket = io.connect('http://192.168.137.91:3000');-->
+				var socket = io.connect('http://192.168.1.60:3000');
                 socket.on('news', function (data) {
                     console.log(data);
                     //socket.emit('my other event', { my: 'data' });
                 });
-
-                $('#test-button').on('click', function(event) {
-                    socket.emit('button', { page: 'hand' });
+				
+				socket.on('card-remove', function (data) {
+                    console.log('card-remove :', data);
+					removeCard(data);
                 });
+				
+				socket.on('draw', function (data) {
+					console.log('card : ' + data.id);
+					addCard(data);
+					socket.emit('card-drawed', data);
+                });
+
+                /*$('#test-button').on('click', function(event) {
+                    socket.emit('button', { page: 'hand' });
+                });*/
 				
 				var xStart, yStart = 0;
  
@@ -41,14 +54,15 @@
 						e.preventDefault();
 					}
 				});
+			
 				
-				function addCard(card) {
-					var div = $('<div></div>', {class: 'card', id: card.id});
-					var img = $('<img />', {src: card.src});
+				function addCard(cardData) {
+					var div = $('<div></div>', {class: 'card', id: cardData.id});
+					var img = $('<img />', {src: cardData.src, alt: cardData.alt});
 					div.append(img);
 					$("#hand").append(div);
 					
-					var card = document.getElementById(card.id);
+					var card = document.getElementById(cardData.id);
 					var hammer = new Hammer(card, {});
 					hammer.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
                     hammer.get('swipe').set({ enable: false });
@@ -66,9 +80,10 @@
                         card.style.msTransform = transform;
                         card.style.mozTransform = transform;
                         card.style.webkitTransform = transform;
-                        console.log('up ' + card.id + ' of ' + transform);
-						if(ev.deltaY <= -screen.height/2) {
-							socket.emit('card-played', { card: card });
+                        console.log('up ' + cardData.id + ' of ' + transform);
+						if(ev.deltaY <= -screen.height/4) {
+							socket.emit('card-played', cardData);
+							hammer.stop();
 						}
                     });
                     hammer.on('pandown', function(ev) {
@@ -80,8 +95,9 @@
                         card.style.mozTransform = transform;
                         card.style.webkitTransform = transform;
                         console.log('down ' + card.id + ' of ' + transform);
-						if(ev.deltaY >= screen.height/2) {
-							socket.emit('card-discared', { card: card });
+						if(ev.deltaY >= screen.height/4) {
+							socket.emit('card-discared', cardData);
+							hammer.stop();
 						}
                     });
 					hammer.on('panend', function(ev) {
@@ -99,69 +115,6 @@
 				function removeCard(card) {
 					$('#' + card.id).remove();
 				}
-				
-				for (i = 1; i <= 10; i++) {
-					addCard({id: i, src: 'pictures/card' + i + '.jpg', alt:'Photo de la carte ' + i});
-				}
-				
-                /*var cards = document.getElementsByClassName('card');
-                Array.prototype.forEach.call(cards, function (card) {
-
-                    var hammer = new Hammer(card, {});
-
-                    //hammer.get('pan').set({ enable: false });
-                    hammer.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
-                    hammer.get('swipe').set({ enable: false });
-                    hammer.get('pinch').set({ enable: false });
-                    hammer.get('rotate').set({ enable: false });
-
-                    hammer.on('tap', function(ev) {
-                        socket.emit('card-tapped', { id: card.id });
-                    });
-                    hammer.on('panup', function(ev) {
-						$(card).removeClass('end');
-                        var transform = 'translateY(' + ev.deltaY + 'px)';
-                        card.style.transform = transform;
-                        card.style.oTransform = transform;
-                        card.style.msTransform = transform;
-                        card.style.mozTransform = transform;
-                        card.style.webkitTransform = transform;
-                        console.log('up ' + card.id + ' of ' + transform);
-						if(ev.deltaY <= -screen.height/2) {
-							socket.emit('card-played', { id: card.id });
-						}
-                    });
-                    hammer.on('pandown', function(ev) {
-						$(card).removeClass('end');
-                        var transform = 'translateY(' + ev.deltaY + 'px)';
-                        card.style.transform = transform;
-                        card.style.oTransform = transform;
-                        card.style.msTransform = transform;
-                        card.style.mozTransform = transform;
-                        card.style.webkitTransform = transform;
-                        console.log('down ' + card.id + ' of ' + transform);
-						if(ev.deltaY >= screen.height/2) {
-							socket.emit('card-discared', { id: card.id });
-						}
-                    });
-					hammer.on('panend', function(ev) {
-						$(card).addClass('end');
-						console.log('release ' + card.id);
-						var transform = 'translateY(' + 0 + 'px)';
-						card.style.transform = transform;
-                        card.style.oTransform = transform;
-                        card.style.msTransform = transform;
-                        card.style.mozTransform = transform;
-                        card.style.webkitTransform = transform;
-                    });*/
-                    /*hammer.on('panleft', function(ev) {
-                        console.log('left ' + card.id);
-                    });
-                    hammer.on('panright', function(ev) {
-                        console.log('right ' + card.id);
-                    });*/
-                /*});*/
-
             })
         </script>
     </head>
@@ -169,38 +122,7 @@
         <div id="horizontal-wrap">
             <div id="page-wrap">
                 <div class="container-fluid">
-                    <!--<button id="test-button" type="button" class="btn btn-default">Default</button>-->
                     <div id="hand">
-                        <!--<div class="card" id="1">
-							<img src="pictures/card1.jpg" alt="Photo de la carte 1" />
-                        </div>
-                        <div class="card" id="2">
-							<img src="pictures/card2.jpg" alt="Photo de la carte 2" />
-                        </div>
-                        <div class="card" id="3">
-							<img src="pictures/card3.jpg" alt="Photo de la carte 3" />
-                        </div>
-                        <div class="card" id="4">
-							<img src="pictures/card4.jpg" alt="Photo de la carte 4" />
-                        </div>
-                        <div class="card" id="5">
-							<img src="pictures/card5.jpg" alt="Photo de la carte 5" />
-                        </div>
-                        <div class="card" id="6">
-							<img src="pictures/card6.jpg" alt="Photo de la carte 6" />
-                        </div>
-                        <div class="card" id="7">
-							<img src="pictures/card7.jpg" alt="Photo de la carte 7" />
-                        </div>
-                        <div class="card" id="8">
-							<img src="pictures/card8.jpg" alt="Photo de la carte 8" />
-                        </div>
-                        <div class="card" id="9">
-							<img src="pictures/card9.jpg" alt="Photo de la carte 9" />
-                        </div>
-                        <div class="card" id="10">
-							<img src="pictures/card10.jpg" alt="Photo de la carte 10" />
-                        </div>-->
                     </div>
                 </div>
             </div>
