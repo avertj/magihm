@@ -23,7 +23,8 @@
             $(function() {
                 <!--var socket = io.connect('localhost:3000');-->
                 <!--var socket = io.connect('http://192.168.137.91:3000');-->
-				var socket = io.connect('http://192.168.1.60:3000');
+				<!--var socket = io.connect('http://192.168.1.60:3000');-->
+				var socket = io.connect('http://192.168.0.100:3000');
                 socket.on('news', function (data) {
                     console.log(data);
                     //socket.emit('my other event', { my: 'data' });
@@ -60,16 +61,13 @@
                 });*/
 				
 				document.addEventListener('touchstart',function(e) {
-					xStart = e.touches[0].screenX;
-					yStart = e.touches[0].screenY;
+
+						e.preventDefault();
 				});
  
 				document.addEventListener('touchmove',function(e) {
-					var xMovement = Math.abs(e.touches[0].screenX - xStart);
-					var yMovement = Math.abs(e.touches[0].screenY - yStart);
-					if((yMovement * 3) > xMovement) {
+
 						e.preventDefault();
-					}
 				});
 				
 				var last_zindex = 0;
@@ -97,14 +95,19 @@
 					var hammer = new Hammer(card, {});
 					hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
                     hammer.get('swipe').set({ enable: false });
-                    hammer.get('pinch').set({ enable: false });
-                    hammer.get('rotate').set({ enable: false });
+                    hammer.get('pinch').set({ enable: true });
+                    hammer.get('rotate').set({ enable: true });
+					hammer.get('rotate').recognizeWith(hammer.get('pan'));
 
                     var previous_top = 0;
-					var previous_left = 0
+					var previous_left = 0;
+					var start_angle = 0;
+					var previous_angle = 0;
 					
 					hammer.on('panstart', function(ev) {
-						var transform = 'translate(' + previous_left + 'px, ' + previous_top + 'px)';
+						var transform = ['translate(' + previous_left + 'px, ' + previous_top + 'px)',
+						'rotate(' + previous_angle + 'deg)'];
+						transform = transform.join(" ");
                         card.style.transform = transform;
                         card.style.oTransform = transform;
                         card.style.msTransform = transform;
@@ -113,8 +116,9 @@
 						card.style.zIndex = "100000000";
                     });
                     hammer.on('panmove', function(ev) {
-                        var transform = 'translate(' + (ev.deltaX + previous_left) + 'px, ' + (ev.deltaY + previous_top) + 'px)';
-						previous_transform = transform;
+                        var transform = ['translate(' + (ev.deltaX + previous_left) + 'px, ' + (ev.deltaY + previous_top) + 'px)',
+						'rotate(' + previous_angle + 'deg)'];
+						transform = transform.join(" ");
 						card.style.transform = transform;
 						card.style.oTransform = transform;
 						card.style.msTransform = transform;
@@ -126,6 +130,57 @@
 						previous_left = (ev.deltaX + previous_left);
 						last_zindex++;
 						card.style.zIndex = last_zindex;
+					});
+					
+					hammer.on('pinch', function(ev) {
+						/*console.log('card : ' + card.id);
+						socket.emit('draw', cardData);
+						hammer.stop();*/
+					});
+					
+					hammer.on('rotatestart', function(ev) {
+						var transform = ['translate(' + previous_left + 'px, ' + previous_top + 'px)',
+							'rotate(' + start_angle + 'deg)'];
+						/*previous_angle = start_angle;*/
+						transform = transform.join(" "); 
+						card.style.transform = transform;
+						card.style.oTransform = transform;
+						card.style.msTransform = transform;
+						card.style.mozTransform = transform;
+						card.style.webkitTransform = transform;
+					});
+					
+					hammer.on('rotatemove', function(ev) {
+						socket.emit('button', {angle1: ev.rotation, angle2: previous_angle});
+						if((start_angle + ev.rotation	- previous_angle) > 160 || (start_angle + ev.rotation - previous_angle) < -160)
+						{
+							var transform = ['translate(' + previous_left + 'px, ' + previous_top + 'px)',
+							'rotate(' + (start_angle + ev.rotation + 180) + 'deg)'];
+							transform = transform.join(" ");
+							previous_angle = (start_angle + ev.rotation) + 180;
+							card.style.transform = transform;
+							card.style.oTransform = transform;
+							card.style.msTransform = transform;
+							card.style.mozTransform = transform;
+							card.style.webkitTransform = transform;
+						}
+						else
+						{
+							var transform = ['translate(' + previous_left + 'px, ' + previous_top + 'px)',
+							'rotate(' + (start_angle + ev.rotation) + 'deg)'];
+							transform = transform.join(" ");
+							previous_angle = (start_angle + ev.rotation);
+							card.style.transform = transform;
+							card.style.oTransform = transform;
+							card.style.msTransform = transform;
+							card.style.mozTransform = transform;
+							card.style.webkitTransform = transform;
+						}
+					});
+					
+					
+					hammer.on('rotateend', function(ev) {
+							start_angle = (start_angle + ev.rotation);
 					});
 				}
 				
@@ -196,14 +251,14 @@
 						</div>
 					</div>
 					<div id="cardNumber">
-						<div id="cardNumberImage" style="background: url('Pictures/cardHand.jpg') repeat; background-size: 100%;" >
+						<div id="cardNumberImage" style="background: url('Pictures/cardHand.jpg') no-repeat; background-size: 100%;" >
 						</div>
 						<div id="cardNumberValue" style="text-align:center">
 							<script type="text/javascript">document.write('<h1>' + cardNumber_val  + '</h1>')</script>
 						</div>
 					</div>
 				</div>
-				<div id="graveyard" style="background: url('Pictures/graveyard.jpg') repeat; background-size: 100%;" >
+				<div id="graveyard">
 				</div>
 				<div id="deck" style="background: url('Pictures/table.jpg') repeat;" >
 				</div>
